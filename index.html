@@ -335,7 +335,7 @@ a:focus-visible,.btn:focus-visible{outline:2px solid var(--steel);outline-offset
 
 <section class="wrap rsvp">
   <!-- EDIT: RSVP link (Discord thread, group chat, form) -->
-  <a class="btn" href="https://discord.gg/xGkt4YD23f">RSVP for a seat</a>
+  <a class="btn" href="#">RSVP for a seat</a>
 </section>
 
 </main>
@@ -346,7 +346,8 @@ a:focus-visible,.btn:focus-visible{outline:2px solid var(--steel);outline-offset
   var hero     = document.querySelector('.hero');
   var swords   = Array.prototype.slice.call(document.querySelectorAll('.sword'));
   var lines    = Array.prototype.slice.call(document.querySelectorAll('.fall i'));
-  var reach    = [96,148,71,187,118,62,163];   // vh each sword's line eventually covers
+  var stop     = document.querySelector('.epigraph .verse');  // the lines end here — top of line six
+  var pace     = [0.62,0.95,0.55,1.00,0.78,0.50,0.88];        // how early each sword finishes
   var lit      = true;
   var reduced  = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -357,13 +358,16 @@ a:focus-visible,.btn:focus-visible{outline:2px solid var(--steel);outline-offset
   }
 
   function draw(p){
-    var vh = window.innerHeight;
+    var target = stop.getBoundingClientRect().top;
     for(var i = 0; i < swords.length; i++){
-      var r = swords[i].getBoundingClientRect();
-      var l = lines[i];
+      var r  = swords[i].getBoundingClientRect();
+      var l  = lines[i];
+      var pi = Math.min(p / pace[i], 1);            // each finishes at its own moment
+      var gap = target - r.bottom;                  // fixed distance: sword tip to line six
+      if(gap < 0) gap = 0;
       l.style.left   = (r.left + r.width / 2) + 'px';
       l.style.top    = r.bottom + 'px';
-      l.style.height = (p * reach[i] * vh / 100) + 'px';
+      l.style.height = (pi * gap) + 'px';
     }
   }
 
