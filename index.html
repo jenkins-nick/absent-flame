@@ -260,8 +260,17 @@ body.is-night .fall{opacity:.55}
   transition:background-color 200ms ease,transform 200ms ease;
 }
 .btn:hover{background:var(--fg);transform:translateY(-1px)}
+.btn-quiet{
+  background:transparent;
+  color:var(--fg);
+  border:1px solid var(--fg-dim);
+  padding:calc(1.05rem - 1px) calc(2.2rem - 1px);
+  margin-left:.9rem;
+}
+.btn-quiet:hover{background:transparent;color:var(--accent);border-color:var(--accent)}
 @media (max-width:30rem){
   .btn{display:block;text-align:center}
+  .btn-quiet{margin-left:0;margin-top:.9rem}
 }
 
 a:focus-visible,.btn:focus-visible{outline:2px solid var(--steel);outline-offset:4px}
@@ -340,9 +349,7 @@ a:focus-visible,.btn:focus-visible{outline:2px solid var(--steel);outline-offset
 <section class="wrap rsvp">
   <!-- EDIT: RSVP link (Discord thread, group chat, form) -->
   <a class="btn" href="https://discord.gg/xGkt4YD23f">RSVP for a seat</a>
-  <p class="credit" style="margin-top:2rem;padding-left:0">
-    <a href="map/">See Eleusina — the world map</a>
-  </p>
+  <a class="btn btn-quiet" href="map/">See the world map</a>
 </section>
   
 
