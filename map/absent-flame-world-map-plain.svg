@@ -278,11 +278,12 @@
 <use href="#ruin" transform="translate(668,736) scale(1.05)"/>
 </g>
 <ellipse cx="742" cy="1176" rx="640" ry="330" fill="url(#emberField)"/>
-<path d="M 870 250 Q 845 350 862.5 405.0 Q 880 460 853.0 515.0 Q 826 570 808.0 630.0 Q 790 690 781.0 745.0 Q 772 800 786.0 850.0 Q 800 900 821.0 950.0 T 842 1000" fill="none" stroke="#4d6a7d" stroke-width="2.0" opacity=".75"/>
-<path d="M 300 300 Q 360 400 380.0 460.0 Q 400 520 385.0 580.0 Q 370 640 335.0 700.0 Q 300 760 275.0 830.0 T 250 900" fill="none" stroke="#4d6a7d" stroke-width="1.5" opacity=".75"/>
-<path d="M 1290 300 Q 1230 400 1235.0 460.0 Q 1240 520 1210.0 580.0 Q 1180 640 1190.0 700.0 Q 1200 760 1225.0 820.0 T 1250 880" fill="none" stroke="#4d6a7d" stroke-width="1.5" opacity=".75"/>
-<path d="M 600 560 Q 680 640 690.0 700.0 Q 700 760 670.0 815.0 Q 640 870 620.0 925.0 T 600 980" fill="none" stroke="#4d6a7d" stroke-width="1.4" opacity=".75"/>
-<path d="M 548 436 Q 566 392 559.0 370.0 Q 552 348 560.0 327.0 Q 568 306 561.0 286.0 Q 554 266 563.0 246.0 Q 572 226 569.0 217.0 T 566 208" fill="none" stroke="#4d6a7d" stroke-width="1.3" opacity=".75"/>
+<path d="M 1012 318 Q 952 342 926.0 358.0 Q 900 374 882.0 399.0 Q 864 424 857.0 450.0 Q 850 476 838.0 523.0 Q 826 570 808.0 630.0 Q 790 690 781.0 745.0 Q 772 800 786.0 850.0 Q 800 900 799.0 941.0 T 798 982" fill="none" stroke="#4d6a7d" stroke-width="2.0" opacity=".75"/>
+<path d="M 312 452 Q 300 540 286.0 585.0 Q 272 630 255.0 668.0 Q 238 706 215.0 733.5 T 192 761" fill="none" stroke="#4d6a7d" stroke-width="1.5" opacity=".75"/>
+<path d="M 1206 330 Q 1252 366 1272.0 381.0 Q 1292 396 1318.5 410.5 T 1345 425" fill="none" stroke="#4d6a7d" stroke-width="1.4" opacity=".75"/>
+<path d="M 1302 694 Q 1294 762 1291.0 787.0 Q 1288 812 1285.5 835.5 T 1283 859" fill="none" stroke="#4d6a7d" stroke-width="1.3" opacity=".75"/>
+<path d="M 600 560 Q 680 640 690.0 700.0 Q 700 760 670.0 815.0 Q 640 870 620.5 930.5 T 601 991" fill="none" stroke="#4d6a7d" stroke-width="1.4" opacity=".75"/>
+<path d="M 548 436 Q 566 392 559.0 370.0 Q 552 348 560.0 327.0 Q 568 306 561.0 286.0 Q 554 266 563.0 253.0 Q 572 240 569.0 232.0 T 566 224" fill="none" stroke="#4d6a7d" stroke-width="1.3" opacity=".75"/>
 <path d="M 322 462 L 430 500 L 508 520 L 600 545" fill="none" stroke="#5A616C" stroke-width="1.5" stroke-dasharray="7 7" opacity="0.7" stroke-linecap="round"/>
 <path d="M 600 545 L 690 600 L 752 650 L 820 540 L 855 470" fill="none" stroke="#5A616C" stroke-width="1.5" stroke-dasharray="7 7" opacity="0.7" stroke-linecap="round"/>
 <path d="M 752 664 L 700 780 L 660 850 L 560 928" fill="none" stroke="#5A616C" stroke-width="1.5" stroke-dasharray="7 7" opacity="0.7" stroke-linecap="round"/>
