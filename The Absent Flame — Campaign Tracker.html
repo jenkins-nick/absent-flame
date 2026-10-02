@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Absent Flame — Campaign Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Grenze:wght@400;600&family=Spectral:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --ash:#1c1917; --ash-2:#262220; --ash-3:#332d2a; --soot:#5a514c; --bone:#e9e2d6; --bone-dim:#a89e93;
+    --ember:#e0582a; --ember-hot:#ffb347; --ember-dead:#3a2f2b; --frost:#7fa7b8; --ok:#8fb27a; --rule:#3d3531; --focus:#ffb347;
+  }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+    --ash:#f3eee6; --ash-2:#ebe4d9; --ash-3:#dfd6c8; --soot:#8a7f75; --bone:#241f1c; --bone-dim:#6a5f57;
+    --ember:#c2401a; --ember-hot:#e07b00; --ember-dead:#d8cfc3; --frost:#3f6f84; --ok:#4f7a3b; --rule:#cfc5b6; --focus:#c2401a; } }
+  :root[data-theme="light"] {
+    --ash:#f3eee6; --ash-2:#ebe4d9; --ash-3:#dfd6c8; --soot:#8a7f75; --bone:#241f1c; --bone-dim:#6a5f57;
+    --ember:#c2401a; --ember-hot:#e07b00; --ember-dead:#d8cfc3; --frost:#3f6f84; --ok:#4f7a3b; --rule:#cfc5b6; --focus:#c2401a; }
+  :root[data-theme="dark"] {
+    --ash:#1c1917; --ash-2:#262220; --ash-3:#332d2a; --soot:#5a514c; --bone:#e9e2d6; --bone-dim:#a89e93;
+    --ember:#e0582a; --ember-hot:#ffb347; --ember-dead:#3a2f2b; --frost:#7fa7b8; --ok:#8fb27a; --rule:#3d3531; --focus:#ffb347; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height:100%; }
+  *,*::before,*::after { box-sizing: inherit; }
+  body { margin:0; min-height:100%; background:var(--ash); color:var(--bone); font-family: Spectral, Georgia, serif; font-size:17px; line-height:1.5; }
+  button,input,select,textarea { font:inherit; color:inherit; }
+  button { cursor:pointer; }
+  :focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
+  h1,h2,h3 { font-family: Grenze, Georgia, serif; font-weight:600; margin:0; line-height:1.1; }
+  .mono { font-family:'JetBrains Mono', ui-monospace, Menlo, monospace; }
+  .dim { color:var(--bone-dim); }
+  .page { max-width:1120px; margin:0 auto; padding:1.25rem 1.25rem 4rem; }
+
+  header.top { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:.5rem 1.5rem; }
+  header.top h1 { font-size:clamp(1.8rem,4vw,2.4rem); } header.top h1 span { color:var(--ember); }
+  .controls { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+  .chip { display:inline-flex; align-items:center; gap:.4rem; padding:.3rem .7rem; border:1px solid var(--rule); border-radius:999px; background:var(--ash-2); color:var(--bone-dim); font-size:.9rem; }
+  .chip.on { color:var(--bone); border-color:var(--soot); }
+  .status { font-size:.85rem; color:var(--bone-dim); } .status .dot { display:inline-block; width:.55em; height:.55em; border-radius:50%; background:var(--soot); margin-right:.35em; vertical-align:middle; } .status.live .dot { background:var(--ok); }
+
+  nav.tabs { display:flex; flex-wrap:wrap; gap:.25rem; margin:1rem 0 1.5rem; border-bottom:1px solid var(--rule); }
+  nav.tabs button { background:transparent; border:0; border-bottom:3px solid transparent; padding:.5rem .9rem; color:var(--bone-dim); font-family:Grenze, serif; font-size:1.15rem; }
+  nav.tabs button.on { color:var(--bone); border-bottom-color:var(--ember); }
+  .panel { display:none; } .panel.on { display:block; }
+  .panel > h2 { font-size:1.7rem; margin-bottom:.25rem; } .lede { margin:0 0 1.25rem; color:var(--bone-dim); max-width:64ch; }
+  .sub { margin-top:2rem; } .sub h3 { font-size:1.25rem; margin-bottom:.5rem; }
+
+  .btn { padding:.35rem .75rem; border:1px solid var(--rule); background:var(--ash-3); border-radius:4px; font-size:.9rem; line-height:1.2; }
+  .btn:hover { border-color:var(--soot); } .btn.toggle.on { background:var(--bone); color:var(--ash); border-color:var(--bone); }
+  .btn.feast.on { background:var(--frost); border-color:var(--frost); color:var(--ash); } .btn.danger { color:var(--ember); }
+  .btn.quiet { background:transparent; color:var(--bone-dim); } .btn.primary { background:var(--ember); border-color:var(--ember); color:#fff; }
+  .spacer { flex:1; }
+  .row { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+
+  table { width:100%; border-collapse:collapse; font-size:.95rem; }
+  th,td { text-align:left; padding:.45rem .6rem .45rem 0; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { font-weight:600; color:var(--bone-dim); font-size:.85rem; }
+  td input[type=text], td textarea { width:100%; background:transparent; border:0; border-bottom:1px dashed transparent; padding:.1rem 0; resize:vertical; }
+  td input[type=text]:hover, td input[type=text]:focus, td textarea:hover, td textarea:focus { border-bottom-color:var(--soot); outline:none; }
+  select { background:var(--ash-2); border:1px solid var(--rule); border-radius:4px; padding:.2rem .35rem; font-size:.9rem; color:var(--bone); }
+  .check { width:1.1rem; height:1.1rem; accent-color:var(--ember); vertical-align:middle; }
+  .wrap { overflow-x:auto; }
+
+  /* Hunger */
+  .chapter-bar { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem 1.25rem; margin-bottom:1rem; }
+  .chapter-bar .num { font-size:2.2rem; font-family:Grenze, serif; line-height:1; }
+  .roster { display:grid; gap:.75rem; }
+  .pc { display:grid; grid-template-columns:minmax(9rem,1.1fr) auto minmax(14rem,1.4fr); gap:.75rem 1.25rem; align-items:center; padding:.9rem 1rem; background:var(--ash-2); border-left:3px solid var(--ember-dead); }
+  .pc.feast { border-left-color:var(--frost); } .pc.band3 { border-left-color:var(--ember); } .pc.band6 { border-left-color:var(--ember-hot); }
+  .pc input.name { background:transparent; border:0; border-bottom:1px dashed var(--rule); padding:.1rem 0; width:100%; font-size:1.15rem; font-family:Grenze, serif; }
+  .pc input.name:focus { border-bottom-color:var(--soot); outline:none; }
+  .embers { display:flex; gap:.45rem; align-items:center; }
+  .ember { width:1.6rem; height:1.6rem; border-radius:50%; background:var(--ember-dead); border:1px solid var(--rule); position:relative; transition:background .25s, box-shadow .25s; }
+  .ember.lit { background:var(--ember); border-color:var(--ember); box-shadow:0 0 10px rgba(224,88,42,.45); }
+  .ember.lit.hot { background:var(--ember-hot); border-color:var(--ember-hot); box-shadow:0 0 14px rgba(255,179,71,.55); }
+  .pc.feast .ember.lit { background:var(--frost); border-color:var(--frost); box-shadow:none; }
+  .ember .n { position:absolute; inset:0; display:grid; place-items:center; font-size:.7rem; color:var(--ash); font-weight:600; opacity:0; } .ember.lit .n { opacity:.9; }
+  .pc .score { font-size:1.4rem; margin-left:.5rem; min-width:1.4ch; text-align:right; }
+  .band { font-size:.92rem; color:var(--bone-dim); } .band b { color:var(--bone); font-weight:600; } .band .cost { display:block; }
+  .pc .acts { grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; padding-top:.35rem; border-top:1px solid var(--rule); }
+  .close-chapter { display:flex; flex-wrap:wrap; gap:.75rem 1.25rem; align-items:center; margin-top:1rem; padding:.9rem 1rem; border:1px dashed var(--rule); }
+  .close-chapter p { margin:0; color:var(--bone-dim); font-size:.95rem; max-width:60ch; }
+
+  /* Table view */
+  body.table .pc { grid-template-columns:minmax(9rem,1fr) auto; padding:1.2rem 1.25rem; }
+  body.table .pc .acts, body.table .pc .band { display:none; }
+  body.table .ember { width:2.2rem; height:2.2rem; } body.table .pc input.name { font-size:1.6rem; pointer-events:none; border-bottom-color:transparent; } body.table .pc .score { font-size:2rem; }
+  .tv-swords { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1.5rem; }
+  .tv-swords span { padding:.3rem .8rem; border:1px solid var(--rule); border-radius:999px; color:var(--bone-dim); }
+  .tv-swords span.found { color:var(--bone); border-color:var(--ember); }
+
+  /* Chapters */
+  .chap-nav { display:flex; flex-wrap:wrap; gap:.3rem; margin-bottom:1rem; }
+  .chap-nav button { width:2.4rem; height:2.4rem; border-radius:4px; border:1px solid var(--rule); background:var(--ash-2); color:var(--bone-dim); font-family:Grenze, serif; font-size:1.1rem; }
+  .chap-nav button.on { background:var(--ember); border-color:var(--ember); color:#fff; }
+  .chap-nav button.done { border-color:var(--ok); color:var(--ok); } .chap-nav button.done.on { background:var(--ok); color:var(--ash); }
+  .chap-head { display:flex; flex-wrap:wrap; align-items:baseline; gap:.5rem 1.5rem; margin-bottom:1rem; }
+  .chap-head h3 { font-size:1.6rem; }
+  .cols { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:1.5rem 2.5rem; }
+  ul.list { list-style:none; margin:0; padding:0; }
+  ul.list li { display:flex; gap:.6rem; align-items:flex-start; padding:.35rem 0; border-bottom:1px solid var(--rule); font-size:.95rem; }
+  ul.list li.done span.t { color:var(--bone-dim); text-decoration:line-through; text-decoration-color:var(--soot); }
+  ul.list .key { color:var(--ember-hot); font-weight:600; margin-right:.15rem; }
+  textarea.notes { width:100%; min-height:5rem; background:var(--ash-2); border:1px solid var(--rule); border-radius:4px; padding:.6rem .75rem; resize:vertical; }
+  .dec { display:grid; grid-template-columns:1fr auto; gap:.4rem 1rem; align-items:center; font-size:.95rem; padding:.35rem 0; border-bottom:1px solid var(--rule); }
+  .progress { height:.45rem; background:var(--ember-dead); border-radius:999px; overflow:hidden; margin:.4rem 0 .75rem; } .progress div { height:100%; background:var(--ember); }
+
+  /* Fronts */
+  .front { padding:1rem; background:var(--ash-2); border-left:3px solid var(--ember-dead); margin-bottom:1rem; }
+  .front h3 { font-size:1.3rem; } .front p.goal { margin:.25rem 0 .75rem; color:var(--bone-dim); font-size:.95rem; }
+  .rung { display:inline-flex; gap:.3rem; }
+  .rung button { width:1.5rem; height:1.5rem; border-radius:3px; border:1px solid var(--rule); background:var(--ash-3); font-size:.7rem; color:var(--bone-dim); }
+  .rung button.on { background:var(--ember); border-color:var(--ember); color:#fff; } .rung button.done.on { background:var(--ok); border-color:var(--ok); color:var(--ash); }
+
+  /* Counters */
+  .counter { display:grid; grid-template-columns:auto 1fr; gap:.5rem 1.5rem; align-items:center; padding:1rem; background:var(--ash-2); margin-bottom:1rem; }
+  .counter .big { font-family:Grenze, serif; font-size:3.2rem; line-height:1; min-width:2.4ch; text-align:center; }
+  .counter .scale { position:relative; height:.6rem; background:var(--ember-dead); border-radius:999px; overflow:hidden; } .counter .scale .fill { position:absolute; inset:0 auto 0 0; background:var(--ember); transition:width .25s; }
+  .counter .marks { display:flex; justify-content:space-between; font-size:.8rem; color:var(--bone-dim); margin-top:.3rem; } .counter .marks span.hit { color:var(--ember-hot); font-weight:600; }
+  .counter .acts { grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:.4rem; } .counter .note { grid-column:1 / -1; color:var(--bone-dim); font-size:.95rem; margin:0; } .counter .note b { color:var(--bone); }
+  .tally { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:.75rem; }
+  .tally .t { padding:.75rem; background:var(--ash-2); display:grid; gap:.3rem; } .tally .t .big { font-family:Grenze, serif; font-size:2rem; line-height:1; } .tally .t .row { gap:.3rem; }
+
+  footer { margin-top:3rem; padding-top:1rem; border-top:1px solid var(--rule); color:var(--bone-dim); font-size:.85rem; display:flex; flex-wrap:wrap; gap:.5rem 1.5rem; }
+  @media (max-width:640px) { .pc { grid-template-columns:1fr; } .pc .score { margin-left:auto; } .counter { grid-template-columns:1fr; } .counter .big { text-align:left; } .dec { grid-template-columns:1fr; } }
+  @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <h1>The Absent Flame <span>— campaign tracker</span></h1>
+    <div class="controls">
+      <button class="chip" id="viewToggle" aria-pressed="false">Table view</button>
+      <button class="chip" id="themeToggle">Theme</button>
+      <span class="status" id="status"><span class="dot"></span>Saving on this device</span>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs" role="tablist">
+    <button data-tab="party" class="on">Party</button>
+    <button data-tab="chapters">Chapters</button>
+    <button data-tab="fronts">Fronts</button>
+    <button data-tab="world">World</button>
+    <button data-tab="sessions">Sessions</button>
+    <button data-tab="counters">Counters</button>
+    <button data-tab="cheat">Cheat sheet</button>
+  </nav>
+
+  <!-- TABLE VIEW -->
+  <section class="panel" id="panel-table">
+    <div class="chapter-bar"><span class="num mono" id="tvChapNum">1</span><span class="dim" id="tvChapName"></span></div>
+    <div class="roster" id="tvRoster"></div>
+    <div class="tv-swords" id="tvSwords"></div>
+    <div id="tvCounters" style="margin-top:1.5rem"></div>
+  </section>
+
+  <!-- PARTY -->
+  <section class="panel on" id="panel-party">
+    <h2>Party</h2>
+    <p class="lede">The campaign worksheet, and Hunger. Mark who killed and who showed mercy as the chapter runs; closing the chapter settles the score and moves the campaign forward.</p>
+    <div class="chapter-bar">
+      <span class="num mono" id="chapNum">1</span><span class="dim" id="chapName"></span>
+      <span class="spacer"></span>
+      <button class="btn quiet" id="nearOssuar">Within a mile of Ossuar: <span id="nearState">off</span></button>
+    </div>
+    <div class="roster" id="roster"></div>
+    <div class="row" style="margin-top:.75rem"><button class="btn" id="addPc">Add a character</button></div>
+    <div class="close-chapter">
+      <p id="closeSummary"></p><span class="spacer"></span>
+      <button class="btn primary" id="closeChapter">Close the chapter</button>
+    </div>
+    <div class="sub">
+      <h3>Worksheet</h3>
+      <div class="wrap"><table id="wsTable"><thead><tr><th>Character</th><th>Player</th><th>Hook</th><th>Bond to</th><th>Wants</th><th>Item wish</th><th>Carries</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- CHAPTERS -->
+  <section class="panel" id="panel-chapters">
+    <h2>Chapters</h2>
+    <p class="lede">Scenes and secrets from each chapter's Prep Page. A secret only becomes real when the players hear it; the marked ◆ ones must land before the chapter ends.</p>
+    <div class="chap-nav" id="chapNav"></div>
+    <div id="chapBody"></div>
+  </section>
+
+  <!-- FRONTS -->
+  <section class="panel" id="panel-fronts">
+    <h2>Fronts</h2>
+    <p class="lede">What is happening in the world while the party is busy somewhere else. Portents advance on the party's choices, never on the calendar.</p>
+    <div id="frontsBody"></div>
+  </section>
+
+  <!-- WORLD -->
+  <section class="panel" id="panel-world">
+    <h2>World</h2>
+    <p class="lede">Swords, named people, and the crowd at Sanctuary.</p>
+    <div class="cols">
+      <div><h3>The Seven</h3><div class="wrap"><table id="swordTable"><thead><tr><th>Sword</th><th>Does</th><th>Found</th><th>Bearer</th></tr></thead><tbody></tbody></table></div></div>
+      <div><h3>Named NPCs</h3><div class="wrap"><table id="npcTable"><thead><tr><th>Who</th><th>Ch</th><th>Status</th><th>Notes</th></tr></thead><tbody></tbody></table></div><div class="row" style="margin-top:.5rem"><button class="btn" id="addNpc">Add an NPC</button></div></div>
+    </div>
+    <div class="sub"><h3>Sanctuary roster</h3><p class="lede" style="margin-bottom:.5rem">The party's growing crowd of rescued people. Also your supply of faces.</p>
+      <div class="wrap"><table id="rosterTable"><thead><tr><th>Name</th><th>From</th><th>Wants</th><th></th></tr></thead><tbody></tbody></table></div>
+      <div class="row" style="margin-top:.5rem"><button class="btn" id="addRescued">Add a person</button></div></div>
+  </section>
+
+  <!-- SESSIONS -->
+  <section class="panel" id="panel-sessions">
+    <h2>Sessions</h2>
+    <p class="lede">Start each session by asking the players to recap the last one. Write down what they remembered, not what happened. Then the strong start for next time.</p>
+    <div class="wrap"><table id="sessTable"><thead><tr><th style="width:7rem">Date</th><th style="width:4rem">Ch</th><th>What the players remembered</th><th>Strong start for next session</th><th></th></tr></thead><tbody></tbody></table></div>
+    <div class="row" style="margin-top:.5rem"><button class="btn" id="addSess">Add a session</button></div>
+  </section>
+
+  <!-- COUNTERS -->
+  <section class="panel" id="panel-counters">
+    <h2>Counters</h2>
+    <p class="lede">The clocks that run inside a chapter. Toggle one on to show it in Table view.</p>
+
+    <h3 class="row">Clamor <span class="dim" style="font-size:1rem;font-weight:400">chapter 6</span><span class="spacer"></span><label class="chip"><input type="checkbox" class="check" id="showClamor"> Show at the table</label></h3>
+    <div class="counter">
+      <div class="big mono" id="clamorNum">0</div>
+      <div><div class="scale"><div class="fill" id="clamorFill"></div></div>
+        <div class="marks"><span>0</span><span id="m5">5 — nearest converts wake</span><span id="m10">10 — the district</span><span id="m15">15 — the Bell</span></div></div>
+      <div class="acts">
+        <button class="btn" data-clamor="1">+1 normal pace</button><button class="btn" data-clamor="1">+1 combat round</button>
+        <button class="btn" data-clamor="2">+2 shout, drop, failed Stealth, verbal spell</button><button class="btn" data-clamor="3">+3 Long Winter present</button>
+        <button class="btn quiet" data-clamor="-1">−1 hour of stillness</button><span class="spacer"></span><button class="btn quiet" id="clamorReset">Reset (left the district)</button>
+      </div>
+      <p class="note" id="clamorNote"></p>
+    </div>
+
+    <h3 class="row">The Field <span class="dim" style="font-size:1rem;font-weight:400">chapter 5</span><span class="spacer"></span><label class="chip"><input type="checkbox" class="check" id="showField"> Show at the table</label></h3>
+    <div class="counter">
+      <div class="big mono" id="fieldNum">0</div>
+      <div><div class="scale"><div class="fill" id="fieldFill"></div></div>
+        <div class="marks"><span>round 0</span><span>4</span><span id="f8">8 — grinders lose here</span><span>12</span></div></div>
+      <div class="acts"><button class="btn" id="fieldNext">Next round</button><button class="btn quiet" id="fieldReset">Reset</button></div>
+      <p class="note" id="fieldNote"></p>
+    </div>
+
+    <h3 class="row">Light and supplies <span class="dim" style="font-size:1rem;font-weight:400">chapters 3 and 4</span><span class="spacer"></span><label class="chip"><input type="checkbox" class="check" id="showSupplies"> Show at the table</label></h3>
+    <div class="tally" id="tally"></div>
+  </section>
+
+  <!-- CHEAT SHEET -->
+  <section class="panel" id="panel-cheat">
+    <h2>Cheat sheet</h2>
+    <p class="lede">The things you reach for mid-scene: a name, a stat block to reskin, a rumor to drop. Names you hand out get crossed off and remembered.</p>
+    <div class="cols">
+      <div>
+        <h3 class="row">Names <span class="spacer"></span><button class="btn" id="pickName">Give me a name</button></h3>
+        <p class="dim" id="pickedName" style="min-height:1.5em;margin:.25rem 0 .5rem;font-family:Grenze,serif;font-size:1.3rem"></p>
+        <div class="wrap"><table id="nameTable"><thead><tr><th>Name</th><th>Given to</th></tr></thead><tbody></tbody></table></div>
+      </div>
+      <div>
+        <h3 class="row">Rumors <span class="dim" style="font-size:1rem;font-weight:400">chapter 1, d6</span><span class="spacer"></span><button class="btn" id="rollRumor">Roll d6</button></h3>
+        <p class="dim" id="rolledRumor" style="min-height:1.5em;margin:.25rem 0 .5rem"></p>
+        <ul class="list" id="rumorList"></ul>
+        <h3 style="margin-top:1.5rem">Beats</h3>
+        <p class="dim" style="font-size:.9rem;margin:.25rem 0 .5rem">Too much dread, drop a hope. Cruising, drop a fear.</p>
+        <div class="row" style="margin-bottom:.5rem"><button class="btn" id="hopeBeat">Hope</button><button class="btn" id="fearBeat">Fear</button></div>
+        <p id="beatOut" style="margin:0;min-height:1.5em"></p>
+      </div>
+    </div>
+    <div class="sub">
+      <h3>Monsters</h3>
+      <p class="dim" style="font-size:.9rem;margin:.25rem 0 .5rem">Build notes from appendix D: start from the Monster Manual base and apply the changes. Climax CRs assume the recommended arc order.</p>
+      <div class="wrap"><table id="monTable"><thead><tr><th>Creature</th><th>Base</th><th>Changes</th><th>CR</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="sub">
+      <h3>Reskin in a hurry</h3>
+      <div class="wrap"><table id="reskinTable"><thead><tr><th>Need</th><th>Use</th><th>Dress it as</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Hunger bands: 0 none · 1–2 dream · 3–4 insist · 5 insist (DC 17) · 6 choose</span>
+    <span class="spacer"></span>
+    <button class="btn quiet" id="resetAll">Clear everything</button>
+  </footer>
+</div>
+
+<script>
+const D = {"CH": ["The Last Battle", "The Waking Peak", "The Sunless Deep", "The Groaning Table", "The Unfinished Field", "The Silent City", "The Anchorhold", "The Rekindling"], "LVL": [2, 4, 6, 8, 10, 12, 14, 15], "PLACE": ["Twilight Gap", "Felwinter Peak / Anchor of Light", "Hellmouth", "Dust Palace", "Six Fronts", "Kavzar", "Harbinger's Seclude", "the Pale Heart"], "PREP": {"1": {"scenes": ["The Broken Line: an ordinary fight, the last ordinary thing in the campaign.", "The sun fails. The stars come out, and then they fall.", "A sword stands in the mud twenty feet away.", "The shadows between the fallen start to move. Survive; don't win.", "Halloran Sedge's last minute, and the finger-bone.", "Count Your Shadows: the survivor with two.", "The Fire Argument: one big fire, a refusal to share it.", "The Hollowed soldier who walks back into the light, and the helpful stranger who stays until dawn.", "Dawn, the missing dead, and where to go next."], "secrets": [{"t": "The bones say seven, and they say four, and the four are coming here.", "key": true}, {"t": "A second shadow means something is standing in the dark beside yours.", "key": true}, {"t": "Osteomancy still works when no other divination does.", "key": false}, {"t": "Fire holds the Teeth back; bare darkness does not.", "key": false}, {"t": "The dead of this field are being pulled apart by the dark while the living watch.", "key": false}, {"t": "The sun came up late and wrong: colors duller, shadows longer, and they stay where they fall.", "key": false}, {"t": "About a third of the dead are gone from the field, and no one saw them go.", "key": false}, {"t": "The stars fell in every direction, and the ones people saw land looked like swords.", "key": false}, {"t": "The cold has not lifted by morning.", "key": false}, {"t": "A man in a marshal's coat walked the field before dawn writing names. No army claims him.", "key": false}], "npcs": ["Halloran Sedge", "The enemy captain", "The helpful stranger", "The two-shadowed survivor and the Hollowed soldier"]}, "2": {"scenes": ["Treeline: the Teeth test the fire.", "Archer's Line: a day of switchbacks, thin air, and the Gloaming one turn below, always.", "Lantern Gate: mirrors, polished shields, and a wall built to keep light in.", "Skywatch: an older ruin used as a warning post, and a sentry with two shadows.", "Warden Ivet Callow: she offers everything but the sword.", "Walking Anchor of Light at night, with children playing outside after dark.", "The Sky-Shard and the Dawn.", "The question about what the shard holds without the sword.", "The evacuation, or the refusal, and what each costs."], "secrets": [{"t": "The Dawn heals the wound, not the king: it thins the Gloaming and does nothing to Vaol.", "key": true}, {"t": "If the sword leaves, the refuge has weeks, not years.", "key": true}, {"t": "The shard holds a little light without the sword, dimming over about a year.", "key": false}, {"t": "The Gloaming follows climbers up the slope, a switchback behind, and never catches them in daylight.", "key": false}, {"t": "Everything here is weeks old: green timber, wet mortar, tents where the next ring will go.", "key": false}, {"t": "To the handful who were here before the sword fell, the refuge is still Hearthold, and Ivet is one of them.", "key": false}, {"t": "A kind man is feeding villages three valleys over, and nobody who ate from his table is hungry.", "key": false}, {"t": "The cairns along the switchbacks are spaced with impossible regularity, and each holds the same three stones.", "key": false}, {"t": "The wall's mirrors and polished shields are only there because the Dawn's light never dims. The sentries have been told it won't.", "key": false}, {"t": "Two people at the gate nearly came to blows over nothing, and neither can say what started it.", "key": false}], "npcs": ["Warden Ivet Callow", "A Hearthold old-timer", "The gate sentry"]}, "3": {"scenes": ["The lip of Hellmouth: the road ends in air, and Winding Cove is the last place with people in it.", "The descent, a day long, with lamp oil counted.", "Sorrow's Harbor: polite hollowed, and doors that were closed with care.", "Pooling Dark: cross by light, or along the high ground.", "Circle of Bones: a reading that reframes an earlier scene.", "Chamber of Night: the dead of an age, standing, and one white point very far away.", "Held Light: the Vigil, and the hollow dead at the edge of the circle, looking in.", "The Hollowed (Hand) returns, wearing the same face, three times.", "The dark stands up on the necropolis floor.", "The climb out, and a season of good news the party gets to hand out."], "secrets": [{"t": "Killing the Hollowed accomplishes nothing; Vaol simply makes another.", "key": true}, {"t": "The Vigil cannot be put out. The dark has not touched the circle around it since it landed.", "key": true}, {"t": "A Hollowed keeps the face, voice, and memories of the person it copies, and none of the person.", "key": false}, {"t": "The hollow dead stand at the edge of the light every night, looking in.", "key": false}, {"t": "Sorrow's Harbor was abandoned because the fields above failed, not because of anything below.", "key": false}, {"t": "A Red Marshal is gathering the desperate under one banner on the surface.", "key": false}, {"t": "Nothing non-magical burns for long at depth; the dark smothers flame.", "key": false}, {"t": "The dead down here are older than the war. The Gloaming has been taking people in the deep places for longer than anyone has counted; the Flame only kept it thin.", "key": false}, {"t": "On every landing of the stairs, the stacked bone repeats bone for bone, exactly.", "key": false}, {"t": "When Vaol's Avatar falls, every Hollowed already made goes still, and no more are made.", "key": false}], "npcs": ["The Hollowed (Hand of Vaol)", "The Kind Face", "Winding Cove's keeper"]}, "4": {"scenes": ["The frost line: golden fields under permanent frost, and the front just past it.", "Alton Dynamo and Maya's Retreat: people who eat and eat and stay starving.", "Eventide: still furnished, nobody home.", "A survivor's account of a town that tried to fight the Winter toe to toe.", "Giant's Scar: the walk into the dark.", "Servants' Passage and Lesser Halls: warm, bread, and a feast that is real.", "The Almoner confronts them, kindly.", "The Larder: reactions only.", "The Groaning Table, and the Feast.", "The Long Winter arrives, and the hall begins to come down.", "The triage: survivors on the Scar, the Avatar in between."], "secrets": [{"t": "Everyone the Almoner has fed belongs to Ossuar by spring. Killing him doesn't un-eat the meals.", "key": true}, {"t": "The Feast carries no marrow-worm and cannot be fed. The Reaving Law can be refused.", "key": true}, {"t": "The Long Winter regains hit points whenever any creature near it drops. A town that fought it toe to toe only fed it faster.", "key": false}, {"t": "Food eaten inside the Dust Palace is real and nourishing, and carries larvae.", "key": false}, {"t": "*Greater restoration* removes the infection; *lesser restoration* does not.", "key": false}, {"t": "Eventide was the first town the front reached; it is still furnished.", "key": false}, {"t": "The Red Marshal is recruiting in the Steppes. The starving make willing soldiers.", "key": false}, {"t": "Where the Hollow King arc is done, the dead of the Steppes rest; where it isn't, they don't.", "key": false}, {"t": "Help arrived at exactly the moment it was needed, from someone no one hired.", "key": false}, {"t": "The Larder's shelves hold the same feast eleven times over, to the grain.", "key": false}], "npcs": ["The Almoner", "A survivor", "The Red Marshal (cameo)", "The Kind Face (absent)"]}, "5": {"scenes": ["Firebase Delphi: Marshal Oren Vasque and eleven thousand people kept alive by force of will.", "Bannerfall: the only shelter within a night's walk.", "Night one: the first crossing, run as a chase.", "The survivor who fought the Field and won, and what it cost the land around it.", "The Red Marshal courting Oren's people in front of him.", "Nights two to four: the dead, the schedule, and the walk to the center.", "The Truce, planted like a banner nobody could reach.", "Persuading Oren what the Truce actually is.", "The fifth dusk: the ground stands up.", "A fast end, or a peaceful one, and the fever breaking."], "secrets": [{"t": "The Field gains +2 to damage every round a fight continues in its presence. Ending it fast, or without fighting, is the point.", "key": true}, {"t": "The Truce ends fights; it doesn't win them. A fight ended without damage in its last round binds Threnn.", "key": true}, {"t": "A man who fought the Field and won says the cost to the land around it was enormous.", "key": false}, {"t": "The dead of Six Fronts have died and risen for an age, and Vaol has never taken one of them. It annoys him.", "key": false}, {"t": "The battle runs a fixed course, stops at the point where it was lost, and everyone lies back down before dawn.", "key": false}, {"t": "Nobody agrees which of the six armies lost.", "key": false}, {"t": "Oren has kept eleven thousand alive for a year, and every battle he wins feeds the thing he thinks he's beating.", "key": false}, {"t": "The Red Marshal is what Threnn makes of a man like Oren.", "key": false}, {"t": "The advice of the friend who wants Oren alive is still good.", "key": false}, {"t": "One skirmish on the Field repeats every hour, not every night, and the repeats are a little too clean.", "key": false}], "npcs": ["Marshal Oren Vasque", "The Red Marshal", "The survivor of the Field", "The Kind Face"]}, "6": {"scenes": ["Blind Watch: a town that has never seen the city it lives beside.", "Into the mists: the Clamor counter starts.", "Outer Rings: the person who breathes once a minute.", "Layered Quarter: two architectures, and what the inscriptions say about the Flame's one job.", "Household: a family at dinner, a seventh chair pulled out, and Sabra.", "The cupboard of folded coats.", "Choir Road: the slow way past the thickest crowd.", "The woken converts speak: warm, in unison, by name.", "The Hush at the tower's foot.", "The tower is not a tower.", "The Weft, taking measurements.", "Walking out, and the argument about burning it."], "secrets": [{"t": "Kavzar did not die. It joined. The people standing in the streets are alive.", "key": true}, {"t": "If the Flame is relit, Kavzar freezes again with everyone in it, Sabra included.", "key": true}, {"t": "The stillness came from outside, over a single afternoon, by people who never came to look.", "key": false}, {"t": "The Flame once did only one job, keeping the shadows thin. Muzzling the Bell and caging the Four were added after Kavzar.", "key": false}, {"t": "The tower is no tower: no courses, no joins, no foundation. It came down, leaned, and stopped.", "key": false}, {"t": "The tower waited. It sat at the center of the city for generations until the people were desperate enough to ask.", "key": true}, {"t": "The Gloaming will not cross into Kavzar. It is the one place the dark holds back from.", "key": false}, {"t": "Sound wakes them. They are not disturbed; they are called.", "key": false}, {"t": "The Weft have been in the city for years, walking among the converts and taking measurements.", "key": false}, {"t": "The plate at the seventh chair has been used. Someone living keeps this house.", "key": false}], "npcs": ["Sabra", "The Kind Face", "The converts' chorus", "The Weft"]}, "7": {"scenes": ["Liming Harbor: the last port still taking the work, and a harbourmaster with no good answer to his question.", "Ten days across the Ecliptic Drift.", "The Approach: the site tells you what it is.", "The Cell: the Anchorite, who skips past what she assumes you know.", "The Solitude, which will not lift while anyone friendly is near.", "The conversation between two parties who both know and both pretend, until one of them stops.", "The Reveal.", "The Contest of Wills: five rounds, a wielder alone, the party's own work elsewhere.", "The skipped riders waiting at the foot of the spire.", "The Bell, still tolling."], "secrets": [{"t": "The friend beside you is Sethivel, one of about two hundred Outwalkers who share one mind.", "key": true}, {"t": "She meant it. The Concord is a real city of real people who asked for the only thing that would help.", "key": true}, {"t": "The Solitude is aimed at the center of what she is, and she is unable to take it.", "key": false}, {"t": "The Anchorite was set here by whoever augmented the Flame, and she is the only living person who knew the cage would fail.", "key": false}, {"t": "The sword rejects any hand with an ally within 30 feet: no check, no save.", "key": false}, {"t": "The Concord's pull tries to fold the wielder back into *we*; each failure speaks a piece of their identity back in the chorus.", "key": false}, {"t": "If the tower waited for Kavzar to break, her mercy was issued to her. Telling her costs nothing and may be the cruelest thing in the campaign.", "key": false}, {"t": "The riders the party skipped have had six chapters to get here.", "key": false}, {"t": "Driving her out and ending her are separate jobs; binding needs the Solitude and a wielder willing to be alone.", "key": false}, {"t": "The Bell is not silent. Unringing it is waiting at the Flame's dead heart.", "key": false}], "npcs": ["The Anchorite", "The Kind Face", "The harbourmaster"]}, "8": {"scenes": ["Cadmus Ridge: no road, a scarp, and a cold basin below.", "Whichever rider is loose arrives: Ossuar's starving approach, Threnn's long fights, Vaol's army of failures, Sethivel's presence.", "Hellas Basin floor: a bowl where light does not stay.", "The Pale Heart: a cold hearth the size of a city.", "The Ember's Hunger at its worst.", "Each binding in turn, run in sequence rather than as a mob.", "Sethivel, waiting, having guided them the whole way.", "The Choice: rekindle, refuse, or re-task.", "The consequences, narrated honestly.", "Epilogues, one per character, and one for a table with a seventh chair."], "secrets": [{"t": "The Ember is exactly what the prophecy said: the third healing sword. There is no ringer.", "key": true}, {"t": "The obstacle is the hand holding it. The bearer is the character furthest gone.", "key": true}, {"t": "Rekindling casts the Four beyond the sky, thins the shadows, and muzzles the Bell, and it freezes Kavzar again, for as long as the fire burns.", "key": false}, {"t": "With the Hush the Bell is unrung for good; without it, the Flame muzzles it as Stage Two did, which held for an age and then failed.", "key": false}, {"t": "Refusing brings the Final Silence: the war, the hunger, the dark, the grief, and everything else, stops.", "key": false}, {"t": "The Flame's powers were added once. The Stage One Flame, shadows only, is a real third path with a real price.", "key": false}, {"t": "Each binding sword in the party's hands is a rider they can end; each one missing is a fight to survive instead.", "key": false}, {"t": "Without the Dawn the Gloaming stays even if the Flame relights; without the Hush the Bell rings on.", "key": false}, {"t": "Sethivel is here regardless of what the party holds.", "key": false}, {"t": "Nothing in the dead heart can tell them which choice is right, and no NPC should try.", "key": false}], "npcs": ["Sethivel (the Voice)", "Allies from earlier arcs"]}}, "DEC": {"1": [["ember", "Who pulled the Ember from the mud", ["—", "(type bearer in Swords)"]], ["hook", "Which rumor did they chase", ["—", "Felwinter Peak", "Hellmouth", "the Steppes", "Six Fronts", "Kavzar", "the Seclude"]]], "2": [["dawn", "The Dawn", ["—", "Taken; evacuation begun", "Left with Ivet", "Split: shard kept lit for a year"]], ["ivet", "Ivet Callow", ["—", "Ally", "Lied to them", "Hostile", "Dead"]]], "3": [["hollowface", "Whose face the Hollowed wore", ["—", "(note below)"]], ["vigil", "The Vigil", ["—", "Claimed before the fight", "Claimed after", "Left"]]], "4": [["almoner", "The Almoner", ["—", "Killed", "Spared", "Escaped"]], ["redm", "Red Marshal", ["—", "Not met", "Met", "Killed here (Oren becomes Marshal)"]], ["winter", "Long Winter", ["—", "Stranded in the hall", "Put down with the Feast", "Fled"]]], "5": [["oren", "Oren Vasque", ["—", "Convinced; ally", "Unconvinced; alive", "Dead", "Became the Red Marshal"]], ["kindface", "The Kind Face fell", ["—", "Exposed", "Apparently killed", "Not yet"]], ["fieldend", "The Field", ["—", "Ended with the Truce", "Burst down", "Lost"]]], "6": [["sabra", "Sabra", ["—", "Met in the Household", "Met on the Choir Road", "Never met"]], ["leash", "They understand the leash", ["—", "Yes", "Partly", "No"]], ["tower", "They learned the tower waited", ["—", "Yes", "No"]], ["weft", "Weft encountered", ["—", "Yes", "No"]]], "7": [["wielder", "Who stood alone (Solitude)", ["—", "(type bearer in Swords)"]], ["contest", "Contest of Wills", ["—", "Driven out", "Wielder joined (3 failures)"]], ["told", "Told Sethivel the mercy was issued to her", ["—", "Yes", "No"]]], "8": [["choice", "The Choice", ["—", "Rekindle", "Refuse", "Re-task (Stage One Flame)"]], ["bound", "Riders bound", ["—", "All four", "Three", "Two", "One", "None"]]]}, "NPCS": [["Halloran Sedge", 1], ["The helpful stranger (Outwalker)", 1], ["Warden Ivet Callow", 2], ["The Hollowed (whose face?)", 3], ["The Almoner", 4], ["The Red Marshal", 4], ["Marshal Oren Vasque", 5], ["Sabra", 6], ["The Weft", 6], ["The Anchorite", 7], ["Sethivel, the Voice", 7]], "FACES": [["The Stranger at the Fire", "ch 1"], ["The Quartermaster", "ch 2–3"], ["The Healer", "ch 4"], ["The Courier", "ch 5"], ["The Long Companion", "ch 2–7"]], "WEFT": {"2": "Cairns spaced with impossible regularity, same three stones in each", "3": "Every landing of the bone stairs repeats bone for bone", "4": "The Larder holds the same feast eleven times over", "5": "One skirmish on the Field repeats every hour, too clean", "6": "They are in Kavzar, taking measurements"}, "CONCORD": ["A kindness lands (two different faces)", "The toll is rumored; a kind friend asks who has heard it", "A face is exposed (chapter 5)"], "THEORIES": ["Ossuar did it", "The war did it", "The gods did it", "They suspect the friend beside them"], "NAMES": [["Marren", "Ashgrove"], ["Tamsin", "Reeve"], ["Dov", "Holt"], ["Ilsa", "Marlowe"], ["Corwin", "Thorne"], ["Bethan", "Quill"], ["Hollis", "Fenwick"], ["Wren", "Sallow"], ["Anselm", "Tarn"], ["Odalys", "Greaves"], ["Tobias", "Penhallow"], ["Rue", "Cray"], ["Calder", "Dunmore"], ["Isolde", "Lark"], ["Merrick", "Rook"], ["Perpetua", "Wick"], ["Garrick", "Harrow"], ["Linnea", "Stannard"], ["Osric", "Pryor"], ["Nell", "Vane"]], "MONS": [{"name": "Swarm of Teeth", "base": "swarm of ravens", "mods": "Necrotic damage; can only be dispersed, never killed; immune to damage in dim light or darkness; cannot enter bright light, and takes 1d6 radiant damage if it starts its turn in bright light", "cr": "1"}, {"name": "Hollowed", "base": "ghost / doppelganger hybrid", "mods": "Retains the memories and voice of the person it copies; re-forms in 1d4 days until Vaol's Avatar is defeated, then never again", "cr": "3"}, {"name": "Convert of the Concord", "base": "cultist / cult fanatic", "mods": "Speaks only in unison with others of its kind; joins new converts as a bonus action", "cr": "1 / 6"}, {"name": "Outwalker", "base": "spy / bard, unaging", "mods": "Indistinguishable from a person until it stops pretending; knows everything any other Outwalker knows", "cr": "6"}, {"name": "Weft Loom-Thing", "base": "modron / animated armor", "mods": "Copies one action it has observed a creature take, once per turn", "cr": "9"}, {"name": "The Almoner (Hand of Ossuar)", "base": "oblex / green hag", "mods": "Imposed-hunger aura; heals when a creature within 60 feet eats", "cr": "7"}, {"name": "The Red Marshal (Hand of Threnn)", "base": "war priest / champion", "mods": "Gains a cumulative +1 to attack rolls each round of combat", "cr": "9"}, {"name": "The Kind Face (Hand of Sethivel)", "base": "archmage / bard", "mods": "An Outwalker, exposed in chapter 5. Dies revealing nothing; another face is with the party by chapter 6", "cr": "10"}, {"name": "The Hollowed (Hand of Vaol)", "base": "as above, elevated", "mods": "Custom to the ally the characters lost", "cr": "5"}, {"name": "The Long Winter (Avatar of Ossuar)", "base": "frost giant / elemental", "mods": "Regains hit points when any creature within 120 feet dies", "cr": "9"}, {"name": "The Field (Avatar of Threnn)", "base": "environmental hazard + combatants", "mods": "Gains +2 to all damage each round combat continues", "cr": "11"}, {"name": "The Gloaming Made Flesh (Avatar of Vaol)", "base": "shadow demon, scaled", "mods": "Extinguishes one light source per turn; immune to damage in full darkness", "cr": "7"}, {"name": "Ossuar / Threnn / Vaol (Riders)", "base": "pit fiend / empyrean tier", "mods": "Cannot be reduced below 1 hit point except by their binding sword", "cr": "16–18"}], "RUMORS": [{"n": 1, "t": "A mountain in Rheasilvia — Felwinter Peak — is still lit up like noon.", "to": "Chapter 2"}, {"n": 2, "t": "Something fell all the way *through* the ground in the Deep Country, past Winding Cove.", "to": "Chapter 3"}, {"n": 3, "t": "The Steppes have frozen solid, and a kind man is feeding the villages.", "to": "Chapter 4"}, {"n": 4, "t": "The old field at Six Fronts is fighting again, every night, the same battle.", "to": "Chapter 5"}, {"n": 5, "t": "Kavzar is not as empty as everyone says.", "to": "Chapter 6"}, {"n": 6, "t": "There is a hermit on a rock out in the Ecliptic Drift who has been waiting for something for an age.", "to": "Chapter 7"}], "RESKIN": [["Gloaming creature that isn't the Teeth", "Shadow", "Dark that learned to hunt by unmaking light."], ["A mob of the starving", "Commoners (non-lethal)", "Marrow-fed villagers, hungrier than they look."], ["The starving who have gone too far", "Ghoul", "The worst of Ossuar's flock."], ["A frost-thrall", "Zombie", "Rime, bone, and slow."], ["A convert of the Concord", "Cultist", "Speaks only in unison; warm."], ["A soldier risen on the Field", "Warrior Infantry", "Same battle, same last word."], ["An Outwalker", "Spy", "Calm, kind, unaging."], ["A Weft thing", "Animated Armor", "Copies a thing it has seen done."]], "HOPE": ["A Hollowed's family finally buries someone who stays buried.", "A refugee column reaches Sanctuary with someone thought dead.", "A rival the party argued with sends supplies.", "A child is named after one of them.", "A harvest is planted in a thawed field.", "The Vigil's white point, glimpsed from far away.", "A character's Hunger drops by one because they let someone live.", "A lieutenant flees, and takes a squad with her."], "FEAR": ["A shadow stands up where there should be one.", "A sworn ally says *we* when she means *I*.", "The dead are standing at the edge of the light again.", "A settlement is described as having gone quiet; no one can say whether anyone is left.", "A character wakes having dreamed of feeding the hunger.", "Frost on the inside of the window.", "A signal horn at night, answered from the wrong direction.", "A friend asks a careful question about who has heard the toll."]};
+(() => {
+  const BANDS = [
+    {min:0,max:0, benefit:"No benefit", cost:"No cost"},
+    {min:1,max:2, benefit:"+1 attack and damage with weapons", cost:"Long rest: DC 12 Wis save or dream of feeding it"},
+    {min:3,max:4, benefit:"+2; extra 1d8 necrotic on a weapon hit", cost:"DC 15 Wis save when a creature is Bloodied in reach, or attack it"},
+    {min:5,max:5, benefit:"+3; extra 2d8 necrotic; advantage on Intimidation", cost:"DC 17 Wis save when a creature is Bloodied in reach, or attack it"},
+    {min:6,max:6, benefit:"+3; extra 3d8 necrotic; regain 1d10 HP per kill", cost:"Each dawn: DC 17 Cha save or the hunger chooses the targets"}];
+  const SWORDS = [["the Ember","rekindles the Flame"],["the Dawn","thins the Gloaming"],["the Vigil","binds Vaol"],["the Feast","binds Ossuar"],["the Truce","binds Threnn"],["the Hush","unrings the Bell"],["the Solitude","binds Sethivel"]];
+  const RIDERS = [["Vaol","the Vigil"],["Ossuar","the Feast"],["Threnn","the Truce"],["Sethivel","the Solitude"]];
+  const RUNGS = ["Omen","Hand","Avatar","Driven out"];
+  const NPC_STATUS = ["not met","met","ally","wary","hostile","dead","joined","exposed"];
+  const SUPPLIES = [["torches","Torches"],["oil","Oil flasks"],["slots","Light spells cast"],["rations","Rations"],["days","Days inside"]];
+
+  const uid = () => Math.random().toString(36).slice(2,9);
+  const blank = () => ({
+    v:2, chapter:1, near:false, view:"dm", tab:"party", updated:0,
+    pcs:[{id:uid(), name:"", player:"", hook:"", bond:"", wants:"", wish:"", carries:"", hunger:0, feast:false, killed:false, mercy:false}],
+    swords: SWORDS.map(([n]) => ({name:n, found:false, bearer:""})),
+    riders: RIDERS.map(([n]) => ({name:n, rung:0})),
+    chapters: Object.fromEntries([1,2,3,4,5,6,7,8].map(n => [n, {status:"not started", scenes:[], secrets:[], dec:{}, notes:""}])),
+    concord:[false,false,false], weft:{}, theories:{}, faces: D.FACES.map(() => ({used:false, exposed:false, who:""})), frontNotes:"",
+    npcs: D.NPCS.map(([n,c]) => ({id:uid(), name:n, ch:c, status:"not met", notes:""})),
+    rescued:[], sessions:[],
+    clamor:0, field:0, supplies:{torches:0,oil:0,slots:0,rations:0,days:0}, show:{clamor:false, field:false, supplies:false}, names:{}, rumorsUsed:{}
+  });
+  let S = blank();
+
+  // ---------- persistence ----------
+  const LS="absent-flame-campaign"; let db=null, docRef=null, saveTimer=null;
+  const statusEl=document.getElementById("status");
+  function loadLocal(){ try { const r=localStorage.getItem(LS); if (r) S=merge(blank(), JSON.parse(r)); } catch(e){} }
+  function saveLocal(){ try { localStorage.setItem(LS, JSON.stringify(S)); } catch(e){} }
+  function merge(base, d){ const o=Object.assign(base, d); o.chapters=Object.assign(base.chapters, d.chapters||{}); o.supplies=Object.assign(base.supplies, d.supplies||{}); o.show=Object.assign(base.show, d.show||{}); o.names=d.names||{}; o.rumorsUsed=d.rumorsUsed||{}; return o; }
+  function setStatus(live,text){ statusEl.className="status"+(live?" live":""); statusEl.innerHTML='<span class="dot"></span>'+text; }
+  function persist(){ S.updated=Date.now(); saveLocal(); if (docRef){ clearTimeout(saveTimer); saveTimer=setTimeout(async()=>{ try{ await docRef.set(S); setStatus(true,"Saved for the table"); }catch(e){ setStatus(false,"Couldn't save to the shared record; kept on this device"); } },400); } }
+  async function connect(){
+    if (!window.claude || !window.claude.use) return;
+    try { db = await window.claude.use("db"); } catch(e){ db=null; }
+    if (!db) return;
+    docRef = db.doc("state/main");
+    docRef.onSnapshot(snap => {
+      if (snap.exists){ const d=snap.data(); if (d && d.updated && d.updated > (S.updated||0)) { S=merge(blank(), d); saveLocal(); render(); } }
+      setStatus(true,"Saved for the table");
+    }, () => setStatus(false,"Shared record unavailable; saving on this device"));
+  }
+
+  // ---------- helpers ----------
+  const $=s=>document.querySelector(s); const band=h=>BANDS.find(b=>h>=b.min&&h<=b.max); const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+  const esc=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function txt(val, ph, on, extra=""){ const i=document.createElement("input"); i.type="text"; i.value=val||""; i.placeholder=ph||""; if (extra) i.setAttribute("aria-label", extra); i.addEventListener("change", e=>{ on(e.target.value); persist(); }); return i; }
+  function area(val, ph, on){ const t=document.createElement("textarea"); t.rows=2; t.value=val||""; t.placeholder=ph||""; t.addEventListener("change", e=>{ on(e.target.value); persist(); }); return t; }
+  function sel(opts, val, on){ const s=document.createElement("select"); opts.forEach(o=>{ const op=document.createElement("option"); op.value=o; op.textContent=o; if (o===val) op.selected=true; s.appendChild(op); }); s.addEventListener("change", e=>{ on(e.target.value); persist(); }); return s; }
+  function td(child){ const c=document.createElement("td"); if (typeof child==="string") c.innerHTML=child; else c.appendChild(child); return c; }
+  function chk(val,on,label){ const c=document.createElement("input"); c.type="checkbox"; c.className="check"; c.checked=!!val; if(label) c.setAttribute("aria-label",label); c.addEventListener("change", e=>{ on(e.target.checked); persist(); }); return c; }
+
+  // ---------- render ----------
+  function render(){
+    const tv = S.view==="table";
+    document.body.classList.toggle("table", tv);
+    $("#viewToggle").classList.toggle("on", tv); $("#viewToggle").setAttribute("aria-pressed", tv); $("#viewToggle").textContent = tv ? "Back to DM view" : "Table view";
+    $("#tabs").style.display = tv ? "none" : "";
+    document.querySelectorAll(".panel").forEach(p => p.classList.toggle("on", tv ? p.id==="panel-table" : p.id==="panel-"+S.tab));
+    document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab===S.tab));
+    $("#chapNum").textContent=S.chapter; $("#chapName").textContent=D.CH[S.chapter-1]; $("#tvChapNum").textContent=S.chapter; $("#tvChapName").textContent=D.CH[S.chapter-1];
+    $("#nearState").textContent = S.near ? "on (gains doubled)" : "off";
+    renderRoster($("#roster"), true); renderRoster($("#tvRoster"), false); renderTableView(); renderWorksheet(); renderClose();
+    renderChapters(); renderFronts(); renderSwords(); renderNpcs(); renderRescued(); renderSessions(); renderCounters(); renderCheat();
+  }
+
+  function pcRow(pc, dm){
+    const b=band(pc.hunger); const row=document.createElement("div");
+    row.className="pc"+(pc.feast?" feast":pc.hunger>=6?" band6":pc.hunger>=3?" band3":"");
+    row.innerHTML=`<div><input class="name" value="${esc(pc.name)}" placeholder="Character name" aria-label="Character name" ${dm?"":"readonly"}></div>
+      <div class="embers" role="img" aria-label="Hunger ${pc.hunger} of 6">${[1,2,3,4,5,6].map(i=>`<span class="ember ${i<=pc.hunger?'lit':''} ${i>=5&&i<=pc.hunger?'hot':''}"><span class="n">${i}</span></span>`).join("")}<span class="score mono">${pc.hunger}</span></div>`;
+    if (dm){
+      row.insertAdjacentHTML("beforeend", `<div class="band">${pc.feast?`<b>The Feast quiets it.</b><span class="cost">Hunger neither grows nor costs anything while attuned; the score waits.</span>`:`<b>${b.benefit}</b><span class="cost">${b.cost}</span>`}</div>
+      <div class="acts">
+        <button class="btn toggle ${pc.killed?'on':''}" data-act="killed">${pc.killed?"Killed this chapter ✓":"Killed this chapter"}</button>
+        <button class="btn toggle ${pc.mercy?'on':''}" data-act="mercy">${pc.mercy?"Showed mercy ✓":"Showed mercy"}</button>
+        <button class="btn danger" data-act="unnecessary">Unnecessary kill +${S.near?2:1}</button>
+        <button class="btn feast ${pc.feast?'on':''}" data-act="feast">${pc.feast?"Attuned to the Feast":"Attune the Feast"}</button>
+        <span class="spacer"></span>
+        <button class="btn quiet" data-act="minus" aria-label="Lower Hunger by one">−1</button><button class="btn quiet" data-act="plus" aria-label="Raise Hunger by one">+1</button>
+        <button class="btn quiet" data-act="remove">Remove</button></div>`);
+      row.querySelector("input.name").addEventListener("change", e=>{ pc.name=e.target.value; persist(); render(); });
+      row.querySelectorAll("[data-act]").forEach(btn=>btn.addEventListener("click", ()=>act(pc, btn.dataset.act)));
+    }
+    return row;
+  }
+  function renderRoster(host, dm){ host.innerHTML=""; S.pcs.forEach(pc=>host.appendChild(pcRow(pc, dm))); }
+  function act(pc, what){
+    const step=S.near?2:1;
+    if (what==="killed") pc.killed=!pc.killed;
+    if (what==="mercy") pc.mercy=!pc.mercy;
+    if (what==="unnecessary" && !pc.feast) pc.hunger=clamp(pc.hunger+step,0,6);
+    if (what==="feast"){ pc.feast=!pc.feast; if (pc.feast) S.pcs.forEach(o=>{ if(o!==pc) o.feast=false; }); }
+    if (what==="minus") pc.hunger=clamp(pc.hunger-1,0,6);
+    if (what==="plus") pc.hunger=clamp(pc.hunger+1,0,6);
+    if (what==="remove"){ if (!confirm(`Remove ${pc.name||"this character"} from the tracker?`)) return; S.pcs=S.pcs.filter(o=>o!==pc); }
+    persist(); render();
+  }
+  function renderClose(){
+    const parts=[]; const step=S.near?2:1;
+    S.pcs.forEach(pc=>{ const n=pc.name||"Unnamed"; if (pc.feast){ if (pc.killed||pc.mercy) parts.push(`${n}: the Feast holds`); return; }
+      const d=(pc.killed?step:0)-(pc.mercy?1:0); if (d>0) parts.push(`${n} +${d}`); else if (d<0) parts.push(`${n} ${d}`); else if (pc.killed&&pc.mercy) parts.push(`${n}: killed and spared, no change`); });
+    $("#closeSummary").textContent = parts.length ? `Closing chapter ${S.chapter} applies: ${parts.join("; ")}. Party reaches level ${D.LVL[S.chapter-1]}.` : `Nothing marked yet. Closing chapter ${S.chapter} takes the party to level ${D.LVL[S.chapter-1]}.`;
+  }
+  function closeChapter(){
+    const step=S.near?2:1;
+    S.pcs.forEach(pc=>{ if(!pc.feast) pc.hunger=clamp(pc.hunger+(pc.killed?step:0)-(pc.mercy?1:0),0,6); pc.killed=false; pc.mercy=false; });
+    S.chapters[S.chapter].status="done"; S.chapter=clamp(S.chapter+1,1,8); if (S.chapters[S.chapter].status==="not started") S.chapters[S.chapter].status="in progress";
+    persist(); render();
+  }
+  function renderTableView(){
+    $("#tvSwords").innerHTML = S.swords.map(sw=>`<span class="${sw.found?'found':''}">${sw.name}${sw.found&&sw.bearer?` — ${esc(sw.bearer)}`:""}</span>`).join("");
+    const c=$("#tvCounters"); c.innerHTML="";
+    if (S.show.clamor) c.insertAdjacentHTML("beforeend", `<div class="counter"><div class="big mono">${S.clamor}</div><div><div class="scale"><div class="fill" style="width:${S.clamor/15*100}%"></div></div><div class="marks"><span>Clamor</span><span>5</span><span>10</span><span>15</span></div></div></div>`);
+    if (S.show.field) c.insertAdjacentHTML("beforeend", `<div class="counter"><div class="big mono">${S.field}</div><div><div class="scale"><div class="fill" style="width:${clamp(S.field/12*100,0,100)}%"></div></div><div class="marks"><span>Round</span><span>the Field hits at +${S.field*2}</span></div></div></div>`);
+    if (S.show.supplies) c.insertAdjacentHTML("beforeend", `<div class="tally">${SUPPLIES.map(([k,l])=>`<div class="t"><span class="dim">${l}</span><span class="big mono">${S.supplies[k]}</span></div>`).join("")}</div>`);
+  }
+  function renderWorksheet(){
+    const tb=$("#wsTable tbody"); tb.innerHTML="";
+    S.pcs.forEach(pc=>{ const tr=document.createElement("tr");
+      tr.appendChild(td(`<b>${esc(pc.name)||"<span class=dim>Unnamed</span>"}</b>`));
+      [["player","Player"],["hook","Sworn Blade, Conscript…"],["bond","Survived with…"],["wants","What they want"],["wish","Heavy armor, a strange wand…"],["carries","Sword, items"]].forEach(([k,ph])=>tr.appendChild(td(txt(pc[k],ph,v=>pc[k]=v,ph))));
+      tb.appendChild(tr); });
+  }
+
+  // ---------- chapters ----------
+  function renderChapters(){
+    const nav=$("#chapNav"); nav.innerHTML="";
+    for (let n=1;n<=8;n++){ const b=document.createElement("button"); b.textContent=n; b.className=(S.chapters[n].status==="done"?"done ":"")+(n===(S.viewChap||S.chapter)?"on":""); b.addEventListener("click",()=>{ S.viewChap=n; renderChapters(); }); nav.appendChild(b); }
+    const n=S.viewChap||S.chapter; const C=S.chapters[n]; const P=D.PREP[n]; const body=$("#chapBody"); body.innerHTML="";
+    const head=document.createElement("div"); head.className="chap-head";
+    head.innerHTML=`<h3>${n}. ${D.CH[n-1]}</h3><span class="dim">${D.PLACE[n-1]} · ends at level ${D.LVL[n-1]}</span><span class="spacer"></span>`;
+    head.appendChild(sel(["not started","in progress","done"], C.status, v=>C.status=v)); body.appendChild(head);
+    const keyTotal=P.secrets.filter(s=>s.key).length, keyDone=P.secrets.filter((s,i)=>s.key&&C.secrets[i]).length, secDone=C.secrets.filter(Boolean).length;
+    body.insertAdjacentHTML("beforeend", `<div class="dim" style="font-size:.9rem">${secDone} of ${P.secrets.length} secrets revealed · ${keyDone} of ${keyTotal} load-bearing</div><div class="progress"><div style="width:${secDone/P.secrets.length*100}%"></div></div>`);
+    const cols=document.createElement("div"); cols.className="cols";
+    const c1=document.createElement("div"); c1.innerHTML="<h3>Scenes</h3>"; const ul1=document.createElement("ul"); ul1.className="list";
+    P.scenes.forEach((sc,i)=>{ const li=document.createElement("li"); li.className=C.scenes[i]?"done":""; li.appendChild(chk(C.scenes[i],v=>{C.scenes[i]=v; renderChapters();},sc)); li.insertAdjacentHTML("beforeend",`<span class="t">${esc(sc)}</span>`); ul1.appendChild(li); });
+    c1.appendChild(ul1); cols.appendChild(c1);
+    const c2=document.createElement("div"); c2.innerHTML="<h3>Secrets and clues</h3>"; const ul2=document.createElement("ul"); ul2.className="list";
+    P.secrets.forEach((se,i)=>{ const li=document.createElement("li"); li.className=C.secrets[i]?"done":""; li.appendChild(chk(C.secrets[i],v=>{C.secrets[i]=v; renderChapters();},se.t)); li.insertAdjacentHTML("beforeend",`<span class="t">${se.key?'<span class="key">◆</span>':''}${esc(se.t)}</span>`); ul2.appendChild(li); });
+    c2.appendChild(ul2); cols.appendChild(c2); body.appendChild(cols);
+    const sub=document.createElement("div"); sub.className="cols sub";
+    const d1=document.createElement("div"); d1.innerHTML="<h3>What they decided</h3>";
+    (D.DEC[n]||[]).forEach(([id,label,opts])=>{ const r=document.createElement("div"); r.className="dec"; r.innerHTML=`<span>${label}</span>`; r.appendChild(sel(opts, C.dec[id]||"—", v=>C.dec[id]=v)); d1.appendChild(r); });
+    const d2=document.createElement("div"); d2.innerHTML=`<h3>Notes</h3>`; const ta=document.createElement("textarea"); ta.className="notes"; ta.value=C.notes||""; ta.placeholder="Who died, who was spared, which face she wore, what the players think is going on…"; ta.addEventListener("change",e=>{C.notes=e.target.value; persist();}); d2.appendChild(ta);
+    sub.appendChild(d1); sub.appendChild(d2); body.appendChild(sub);
+  }
+
+  // ---------- fronts ----------
+  function renderFronts(){
+    const b=$("#frontsBody"); b.innerHTML="";
+    // Concord
+    const f1=document.createElement("div"); f1.className="front"; f1.innerHTML=`<h3>The Concord</h3><p class="goal">Never to lose anyone again. Keep the party trusting and moving, keep the Solitude out of reach, finish waking Kavzar, be waiting at the heart.</p>`;
+    const ul=document.createElement("ul"); ul.className="list"; D.CONCORD.forEach((p,i)=>{ const li=document.createElement("li"); li.className=S.concord[i]?"done":""; li.appendChild(chk(S.concord[i],v=>{S.concord[i]=v; renderFronts();},p)); li.insertAdjacentHTML("beforeend",`<span class="t">${esc(p)}</span>`); ul.appendChild(li); }); f1.appendChild(ul);
+    f1.insertAdjacentHTML("beforeend",`<h3 style="font-size:1.05rem;margin-top:1rem">Her faces</h3>`);
+    const ft=document.createElement("table"); ft.innerHTML="<thead><tr><th>Face</th><th>Seen</th><th>Used</th><th>Exposed</th><th>Played as / name given</th></tr></thead>"; const tb=document.createElement("tbody");
+    D.FACES.forEach(([name,when],i)=>{ const f=S.faces[i]; const tr=document.createElement("tr"); tr.appendChild(td(name)); tr.appendChild(td(`<span class="dim">${when}</span>`)); tr.appendChild(td(chk(f.used,v=>f.used=v,name+" used"))); tr.appendChild(td(chk(f.exposed,v=>f.exposed=v,name+" exposed"))); tr.appendChild(td(txt(f.who,"—",v=>f.who=v))); tb.appendChild(tr); });
+    ft.appendChild(tb); f1.appendChild(ft); b.appendChild(f1);
+    // Unbound three
+    const f2=document.createElement("div"); f2.className="front"; f2.innerHTML=`<h3>The Unbound Three</h3><p class="goal">To fill the world they were cast out of: hunger, war, and the dark. Each rider the party leaves alone climbs a rung when they finish an arc elsewhere.</p>`;
+    const rt=document.createElement("table"); rt.innerHTML="<thead><tr><th>Rider</th><th>Omen · Hand · Avatar · Driven out</th><th>Bound by</th></tr></thead>"; const rtb=document.createElement("tbody");
+    S.riders.forEach((r,i)=>{ const tr=document.createElement("tr"); tr.appendChild(td(r.name)); const sp=document.createElement("span"); sp.className="rung";
+      RUNGS.forEach((lab,k)=>{ const bt=document.createElement("button"); bt.textContent=lab[0]; bt.title=lab; bt.setAttribute("aria-label",`${r.name}: ${lab}`); bt.className=(k===3?"done ":"")+(k<=r.rung?"on":""); bt.addEventListener("click",()=>{ r.rung = r.rung===k ? Math.max(0,k-1) : k; persist(); renderFronts(); }); sp.appendChild(bt); });
+      tr.appendChild(td(sp)); tr.appendChild(td(`<span class="dim">${RIDERS[i][1]}</span>`)); rtb.appendChild(tr); });
+    rt.appendChild(rtb); f2.appendChild(rt); b.appendChild(f2);
+    // Marrow gods summary
+    const f3=document.createElement("div"); f3.className="front"; const top=Math.max(0,...S.pcs.map(p=>p.hunger));
+    f3.innerHTML=`<h3>The Marrow Gods</h3><p class="goal">To be fed. It dreams at 1–2, insists at 3–5, chooses at 6. It does not stop when Ossuar is driven out.</p>
+      <div class="row">${S.pcs.map(p=>`<span class="chip ${p.hunger>0?'on':''}">${esc(p.name)||"Unnamed"} <b class="mono">${p.hunger}</b>${p.feast?' · Feast':''}</span>`).join("")}</div>
+      <p class="dim" style="margin:.75rem 0 0;font-size:.95rem">${top>=6?"<b>It chooses.</b> Someone is at 6.":top>=3?"<b>It insists.</b>":top>0?"<b>It dreams.</b>":"Nobody hungers yet."} Scores live on the Party tab.</p>`;
+    b.appendChild(f3);
+    // Weft + theories
+    const f4=document.createElement("div"); f4.className="front"; f4.innerHTML=`<h3>The Weft</h3><p class="goal">Seed one fingerprint per chapter so chapter 6 is a recognition, not an introduction.</p>`;
+    const wl=document.createElement("ul"); wl.className="list"; Object.entries(D.WEFT).forEach(([ch,t])=>{ const li=document.createElement("li"); li.className=S.weft[ch]?"done":""; li.appendChild(chk(S.weft[ch],v=>{S.weft[ch]=v; renderFronts();},t)); li.insertAdjacentHTML("beforeend",`<span class="t"><span class="dim mono" style="margin-right:.5rem">ch ${ch}</span>${esc(t)}</span>`); wl.appendChild(li); }); f4.appendChild(wl); b.appendChild(f4);
+    const f5=document.createElement("div"); f5.className="front"; f5.innerHTML=`<h3>Wrong theories</h3><p class="goal">What the table currently believes killed the Flame. Nothing in chapters 1–5 should contradict a reasonable wrong theory.</p>`;
+    const tl=document.createElement("ul"); tl.className="list"; D.THEORIES.forEach((t,i)=>{ const li=document.createElement("li"); li.appendChild(chk(S.theories[i],v=>S.theories[i]=v,t)); li.insertAdjacentHTML("beforeend",`<span class="t">${esc(t)}</span>`); tl.appendChild(li); }); f5.appendChild(tl);
+    const ta=document.createElement("textarea"); ta.className="notes"; ta.style.marginTop=".75rem"; ta.value=S.frontNotes||""; ta.placeholder="What's happening in the world right now…"; ta.addEventListener("change",e=>{S.frontNotes=e.target.value; persist();}); f5.appendChild(ta); b.appendChild(f5);
+  }
+
+  // ---------- world ----------
+  function renderSwords(){ const tb=$("#swordTable tbody"); tb.innerHTML=""; S.swords.forEach((sw,i)=>{ const tr=document.createElement("tr"); tr.appendChild(td(sw.name)); tr.appendChild(td(`<span class="dim">${SWORDS[i][1]}</span>`)); tr.appendChild(td(chk(sw.found,v=>{sw.found=v; renderTableView();},sw.name+" found"))); tr.appendChild(td(txt(sw.bearer,"—",v=>{sw.bearer=v; renderTableView();},sw.name+" bearer"))); tb.appendChild(tr); }); }
+  function renderNpcs(){ const tb=$("#npcTable tbody"); tb.innerHTML=""; S.npcs.forEach(np=>{ const tr=document.createElement("tr"); tr.appendChild(td(txt(np.name,"Name",v=>np.name=v))); tr.appendChild(td(txt(String(np.ch||""),"",v=>np.ch=v))); tr.appendChild(td(sel(NPC_STATUS,np.status,v=>np.status=v))); tr.appendChild(td(area(np.notes,"",v=>np.notes=v))); tb.appendChild(tr); }); }
+  function renderRescued(){ const tb=$("#rosterTable tbody"); tb.innerHTML=""; S.rescued.forEach(r=>{ const tr=document.createElement("tr"); tr.appendChild(td(txt(r.name,"Name",v=>r.name=v))); tr.appendChild(td(txt(r.from,"Where found",v=>r.from=v))); tr.appendChild(td(txt(r.wants,"What they want",v=>r.wants=v))); const x=document.createElement("button"); x.className="btn quiet"; x.textContent="Remove"; x.addEventListener("click",()=>{ S.rescued=S.rescued.filter(o=>o!==r); persist(); renderRescued(); }); tr.appendChild(td(x)); tb.appendChild(tr); }); }
+  function renderSessions(){ const tb=$("#sessTable tbody"); tb.innerHTML=""; S.sessions.forEach(se=>{ const tr=document.createElement("tr"); tr.appendChild(td(txt(se.date,"date",v=>se.date=v))); tr.appendChild(td(txt(String(se.ch||""),"",v=>se.ch=v))); tr.appendChild(td(area(se.recap,"What they remembered",v=>se.recap=v))); tr.appendChild(td(area(se.start,"One sentence, close to the action",v=>se.start=v))); const x=document.createElement("button"); x.className="btn quiet"; x.textContent="Remove"; x.addEventListener("click",()=>{ if(confirm("Remove this session?")){ S.sessions=S.sessions.filter(o=>o!==se); persist(); renderSessions(); } }); tr.appendChild(td(x)); tb.appendChild(tr); }); }
+
+  // ---------- counters ----------
+  function renderCounters(){
+    $("#clamorNum").textContent=S.clamor; $("#clamorFill").style.width=(S.clamor/15*100)+"%";
+    $("#m5").classList.toggle("hit",S.clamor>=5); $("#m10").classList.toggle("hit",S.clamor>=10); $("#m15").classList.toggle("hit",S.clamor>=15);
+    $("#clamorNote").innerHTML = S.clamor>=15 ? "<b>The Bell answers.</b> Draw the Hush, if they have it." : S.clamor>=10 ? "<b>The district wakes.</b> They turn, and they speak, warmly, by name." : S.clamor>=5 ? "<b>The nearest converts wake.</b> They turn and look. They ask you to stay." : "<b>Quiet.</b> Nobody has turned.";
+    $("#fieldNum").textContent=S.field; $("#fieldFill").style.width=clamp(S.field/12*100,0,100)+"%"; $("#f8").classList.toggle("hit",S.field>=8);
+    $("#fieldNote").innerHTML=`The Field deals <b>+${S.field*2}</b> damage on every roll.`+(S.field>=8?" <b>Nobody grinds this out.</b>":"");
+    $("#showClamor").checked=S.show.clamor; $("#showField").checked=S.show.field; $("#showSupplies").checked=S.show.supplies;
+    const t=$("#tally"); t.innerHTML=""; SUPPLIES.forEach(([k,l])=>{ const d=document.createElement("div"); d.className="t"; d.innerHTML=`<span class="dim">${l}</span><span class="big mono">${S.supplies[k]}</span>`; const r=document.createElement("div"); r.className="row";
+      [["−1",-1],["+1",1],["+5",5]].forEach(([lab,v])=>{ const b=document.createElement("button"); b.className="btn quiet"; b.textContent=lab; b.addEventListener("click",()=>{ S.supplies[k]=Math.max(0,S.supplies[k]+v); persist(); renderCounters(); renderTableView(); }); r.appendChild(b); }); d.appendChild(r); t.appendChild(d); });
+    renderTableView();
+  }
+
+  // ---------- cheat sheet ----------
+  function renderCheat(){
+    const nt=$("#nameTable tbody"); nt.innerHTML="";
+    D.NAMES.forEach(([g,f])=>{ const full=g+" "+f; const used=S.names[full]!==undefined; const tr=document.createElement("tr"); if (used) tr.style.color="var(--bone-dim)";
+      tr.appendChild(td(used?`<s>${full}</s>`:full)); tr.appendChild(td(txt(S.names[full]||"","—",v=>{ if (v.trim()==="") delete S.names[full]; else S.names[full]=v; renderCheat(); },full+" given to"))); nt.appendChild(tr); });
+    const rl=$("#rumorList"); rl.innerHTML="";
+    D.RUMORS.forEach(r=>{ const li=document.createElement("li"); li.className=S.rumorsUsed[r.n]?"done":""; li.appendChild(chk(S.rumorsUsed[r.n],v=>{S.rumorsUsed[r.n]=v; renderCheat();},r.t)); li.insertAdjacentHTML("beforeend",`<span class="t"><span class="dim mono" style="margin-right:.5rem">${r.n}</span>${esc(r.t)} <span class="dim">(${esc(r.to)})</span></span>`); rl.appendChild(li); });
+    const mt=$("#monTable tbody"); mt.innerHTML="";
+    D.MONS.forEach(m=>{ const tr=document.createElement("tr"); tr.innerHTML=`<td><b>${esc(m.name)}</b></td><td>${esc(m.base)}</td><td>${esc(m.mods)}</td><td class="mono">${esc(m.cr)}</td>`; mt.appendChild(tr); });
+    const rt=$("#reskinTable tbody"); rt.innerHTML="";
+    D.RESKIN.forEach(r=>{ const tr=document.createElement("tr"); tr.innerHTML=`<td>${esc(r[0])}</td><td>${esc(r[1])}</td><td class="dim">${esc(r[2])}</td>`; rt.appendChild(tr); });
+  }
+  $("#pickName").addEventListener("click",()=>{ const free=D.NAMES.map(([g,f])=>g+" "+f).filter(n=>S.names[n]===undefined); const pool=free.length?free:D.NAMES.map(([g,f])=>g+" "+f); const n=pool[Math.floor(Math.random()*pool.length)]; $("#pickedName").textContent=n+(free.length?"":" (all used; reusing)"); });
+  $("#rollRumor").addEventListener("click",()=>{ const r=D.RUMORS[Math.floor(Math.random()*6)]; $("#rolledRumor").innerHTML=`<span class="mono">${r.n}</span> — ${esc(r.t)} <span class="dim">(${esc(r.to)})</span>`; });
+  $("#hopeBeat").addEventListener("click",()=>{ $("#beatOut").textContent=D.HOPE[Math.floor(Math.random()*D.HOPE.length)]; });
+  $("#fearBeat").addEventListener("click",()=>{ $("#beatOut").textContent=D.FEAR[Math.floor(Math.random()*D.FEAR.length)]; });
+
+  // ---------- wiring ----------
+  $("#viewToggle").addEventListener("click",()=>{ S.view = S.view==="table" ? "dm" : "table"; persist(); render(); });
+  $("#themeToggle").addEventListener("click",()=>{ const cur=document.documentElement.getAttribute("data-theme"); const dark = cur ? cur==="dark" : !window.matchMedia("(prefers-color-scheme: light)").matches; const next=dark?"light":"dark"; document.documentElement.setAttribute("data-theme",next); try{ localStorage.setItem(LS+":theme",next);}catch(e){} });
+  document.querySelectorAll("#tabs button").forEach(b=>b.addEventListener("click",()=>{ S.tab=b.dataset.tab; persist(); render(); }));
+  $("#addPc").addEventListener("click",()=>{ S.pcs.push({id:uid(),name:"",player:"",hook:"",bond:"",wants:"",wish:"",carries:"",hunger:0,feast:false,killed:false,mercy:false}); persist(); render(); });
+  $("#nearOssuar").addEventListener("click",()=>{ S.near=!S.near; persist(); render(); });
+  $("#closeChapter").addEventListener("click",closeChapter);
+  $("#addNpc").addEventListener("click",()=>{ S.npcs.push({id:uid(),name:"",ch:"",status:"not met",notes:""}); persist(); renderNpcs(); });
+  $("#addRescued").addEventListener("click",()=>{ S.rescued.push({name:"",from:"",wants:""}); persist(); renderRescued(); });
+  $("#addSess").addEventListener("click",()=>{ S.sessions.push({date:new Date().toISOString().slice(0,10), ch:S.chapter, recap:"", start:""}); persist(); renderSessions(); });
+  document.querySelectorAll("[data-clamor]").forEach(b=>b.addEventListener("click",()=>{ S.clamor=clamp(S.clamor+(+b.dataset.clamor),0,15); persist(); renderCounters(); }));
+  $("#clamorReset").addEventListener("click",()=>{ S.clamor=0; persist(); renderCounters(); });
+  $("#fieldNext").addEventListener("click",()=>{ S.field=clamp(S.field+1,0,30); persist(); renderCounters(); });
+  $("#fieldReset").addEventListener("click",()=>{ S.field=0; persist(); renderCounters(); });
+  ["clamor","field","supplies"].forEach(k=>$("#show"+k[0].toUpperCase()+k.slice(1)).addEventListener("change",e=>{ S.show[k]=e.target.checked; persist(); renderTableView(); }));
+  $("#resetAll").addEventListener("click",()=>{ if(confirm("Clear every character, chapter, front, NPC, session and counter?")){ S=blank(); persist(); render(); } });
+
+  try{ const t=localStorage.getItem(LS+":theme"); if(t) document.documentElement.setAttribute("data-theme",t);}catch(e){}
+  loadLocal(); render(); connect();
+})();
+</script>
+</body>
+</html>
